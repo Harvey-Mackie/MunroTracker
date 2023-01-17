@@ -63,4 +63,10 @@ public class UserEntity {
 
     @OneToMany(mappedBy = "user", fetch = FetchType.EAGER)
     private List<MunroCompletedEntity> munroCompletedEntities;
+
+    @OneToMany(mappedBy = "from", fetch = FetchType.EAGER)
+    private List<UserFollowersEntity> userFollowing;
+
+    @OneToMany(mappedBy = "to", fetch = FetchType.EAGER)
+    private List<UserFollowersEntity> userFollowers;
 }
