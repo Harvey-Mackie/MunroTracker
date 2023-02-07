@@ -19,11 +19,11 @@ public class MunroController {
     }
 
     //Future Enhancement - UserId will be fetched from bearer token once authentication is implemented.
-    @GetMapping(path="{userId}")
+    @GetMapping
     public List<MunroDetailsDto> GetMunros(
-            @PathVariable("userId") Long userId
+            @RequestParam Long userId
     ){
-        return munroService.GetMunros(userId);
+        return munroService.getMunros(userId);
     }
 
     @PostMapping(path = "{munroId}/complete")

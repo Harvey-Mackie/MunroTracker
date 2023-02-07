@@ -1,12 +1,12 @@
 package com.munro.api.service;
 
-import com.munro.api.model.domain.MunroCompletedEntity;
-import com.munro.api.model.domain.MunroEntity;
+import com.munro.api.model.domain.*;
+import com.munro.api.model.dto.MunroCompletedCommentDto;
+import com.munro.api.model.dto.MunroCompletedKudosDto;
 import com.munro.api.model.dto.MunroDetailsDto;
+import com.munro.api.model.dto.MunroFeedDetailsDto;
 import com.munro.api.properties.ConfigProperties;
-import com.munro.api.repository.MunroCompletedRepository;
-import com.munro.api.repository.MunroRepository;
-import com.munro.api.repository.UserRepository;
+import com.munro.api.repository.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +17,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,16 +25,27 @@ import java.util.List;
 public class MunroService {
 
     private final Logger logger = LoggerFactory.getLogger(MunroService.class);
+    @Autowired
     private final MunroRepository munroRepository;
+    @Autowired
     private final MunroCompletedRepository munroCompletedRepository;
+    @Autowired
+    private final MunroCompletedKudosRepository munroCompletedKudosRepository;
+
+    @Autowired
+    private final MunroCompletedCommentRepository munroCompletedCommentRepository;
+    @Autowired
     private final UserRepository userRepository;
+    @Autowired
     protected final ConfigProperties configProperties;
 
     @Autowired
-    public MunroService(MunroRepository munroRepository, ConfigProperties configProperties, MunroCompletedRepository munroCompletedRepository, UserRepository userRepository){
+    public MunroService(MunroRepository munroRepository, ConfigProperties configProperties, MunroCompletedRepository munroCompletedRepository, MunroCompletedKudosRepository munroCompletedKudosRepository, MunroCompletedCommentRepository munroCompletedCommentRepository, UserRepository userRepository){
         this.munroRepository = munroRepository;
         this.configProperties = configProperties;
         this.munroCompletedRepository = munroCompletedRepository;
+        this.munroCompletedKudosRepository = munroCompletedKudosRepository;
+        this.munroCompletedCommentRepository = munroCompletedCommentRepository;
         this.userRepository = userRepository;
     }
 
@@ -93,17 +105,19 @@ public class MunroService {
         logger.info("Successfully populated databases with " + lineCount + " munros.");
     }
 
-    public List<MunroDetailsDto> GetMunros(Long userId){
+    public List<MunroDetailsDto> getMunros(Long userId){
         logger.info("Attempting to retrieve the munros.");
         var munros = this.munroRepository.findAll();
-        var user = userRepository.findById(userId).get();
-        var completedMunros = user.getMunroCompletedEntities();
+        var userExists = userRepository.findById(userId).isPresent();
+
+        var user = userExists ? userRepository.findById(userId).get() : null;
 
         var munroResponse = new ArrayList<MunroDetailsDto>();
         for(var munro : munros){
-            var hasCompletedMunro = completedMunros
+            var hasCompletedMunro = userExists ? user
+                    .getMunroCompletedEntities()
                     .stream()
-                    .filter(p -> p.getMunro_id() == munro.getId()).count() > 0;
+                    .filter(p -> p.getMunro().getId() == munro.getId()).count() > 0 : false;
 
             munroResponse.add(new MunroDetailsDto(
                     munro.getName(),
@@ -120,20 +134,162 @@ public class MunroService {
         return munroResponse;
     }
 
-    public void SetMunroToComplete(Long userId, Long munroId, LocalDate date) {
+    public Long SetMunroToComplete(Long userId, Long munroId, LocalDate date) {
         logger.info("Attempting to set munro to completed.");
-        var user = userRepository.findById(userId);
 
+        var user = userRepository.findById(userId);
         if(user.isPresent() == false){
             logger.info("Failed to find a user with the id " + userId);
             throw new RuntimeException("Failed to find user with id " + userId);
         }
 
-        munroCompletedRepository.save(
-                new MunroCompletedEntity(user.get(), munroId, date)
+        var munro = munroRepository.findById(munroId);
+        if(munro.isPresent() == false){
+            logger.info("Failed to find a munro with the id " + munroId);
+            throw new RuntimeException("Failed to find munro with id " + munroId);
+        }
+
+        var completedEntity = munroCompletedRepository.save(
+                new MunroCompletedEntity(user.get(), munro.get(), date)
         );
 
         logger.info("Successfully set munro to completed.");
 
+        return completedEntity.getId();
+    }
+
+    public List<MunroFeedDetailsDto> feed(Long currentUserId) {
+        var currentUser = userRepository.findById(currentUserId);
+
+        if(!currentUser.isPresent()){
+            throw new RuntimeException("Failed to find user with id " + currentUserId);
+        }
+
+        List<MunroFeedDetailsDto> feed = new ArrayList<>();
+        currentUser.get().getUserFollowing().forEach(user -> {
+            user.getTo().getMunroCompletedEntities().forEach( completedMunro -> {
+                feed.add(
+                        new MunroFeedDetailsDto(
+                            completedMunro.getMunro().getName(),
+                            completedMunro.getMunro().getHeight(),
+                            completedMunro.getMunro().getLatitude(),
+                            completedMunro.getMunro().getLongitude(),
+                            completedMunro.getMunro().getRegion(),
+                            completedMunro.getMunro().getMeaningOfName(),
+                            true,
+                            mapCompletedCommentEntityToDetailsDto(completedMunro.getMunroCompletedCommentEntities(), currentUser.get()),
+                            mapCompletedKudosEntityToDetailsDto(completedMunro.getMunroCompletedKudosEntities(), currentUser.get()),
+                            completedMunro.getUser().getName()
+                        )
+                );
+            });
+        });
+
+        return feed;
+    }
+
+    public MunroFeedDetailsDto getMunroCompleted(Long munroCompletedId) {
+        var munroCompletedEntry = munroCompletedRepository.findById(munroCompletedId);
+
+        if(!munroCompletedEntry.isPresent()){
+            throw new RuntimeException("Failed to find Munro Completed entry with id" + munroCompletedId);
+        }
+
+        var completedMunro = munroCompletedEntry.get();
+        var munroFeedDetails =  new MunroFeedDetailsDto(
+                completedMunro.getMunro().getName(),
+                completedMunro.getMunro().getHeight(),
+                completedMunro.getMunro().getLatitude(),
+                completedMunro.getMunro().getLongitude(),
+                completedMunro.getMunro().getRegion(),
+                completedMunro.getMunro().getMeaningOfName(),
+                true,
+                mapCompletedCommentEntityToDetailsDto(completedMunro.getMunroCompletedCommentEntities(), completedMunro.getUser()),
+                mapCompletedKudosEntityToDetailsDto(completedMunro.getMunroCompletedKudosEntities(), completedMunro.getUser()),
+                completedMunro.getUser().getName()
+        );
+
+
+        List<MunroCompletedKudosDto> kudosEntries = new ArrayList<MunroCompletedKudosDto>();
+        completedMunro.getMunroCompletedKudosEntities().forEach((kudos) -> {
+            kudosEntries.add(
+                    new MunroCompletedKudosDto(
+                            kudos.getMunroCompleted().getId(),
+                            kudos.getUser().getName(),
+                            kudos.getUser().getId(),
+                            kudos.getDate()));
+        });
+
+        munroFeedDetails.setMunroCompletedKudosDtoList(kudosEntries);
+
+        return munroFeedDetails;
+    }
+
+    public void giveKudos(Long munroCompletedId, Long currentUserId) {
+        logger.info("Attempting to give Kudos on munroCompleted entry " + munroCompletedId + " from user " + currentUserId);
+
+        var munroCompletedEntry = munroCompletedRepository.findById(munroCompletedId);
+        if(!munroCompletedEntry.isPresent()){
+            logger.info("Failed to find munroCompleted entry " + munroCompletedId);
+            throw new RuntimeException("Failed to find Munro Completed entry with id" + munroCompletedId);
+        }
+
+        var currentUser = userRepository.findById(currentUserId);
+        if(!currentUser.isPresent()){
+            logger.info("Failed to find user entry " + currentUserId);
+            throw new RuntimeException("Failed to find user entry with id" + currentUserId);
+        }
+
+        var kudoEntry = new MunroCompletedKudosEntity(munroCompletedEntry.get(), currentUser.get(), LocalDateTime.now());
+        munroCompletedKudosRepository.save(kudoEntry);
+
+        logger.info("Successfully gave Kudos on munroCompleted entry " + munroCompletedId + " from user " + currentUserId);
+    }
+
+    public void postComment(Long munroCompletedId, Long currentUserId, String comment){
+        logger.info("Attempting to post a comment from user " + currentUserId + " on munro completed entry" + munroCompletedId);
+
+        var munroCompletedEntry = munroCompletedRepository.findById(munroCompletedId);
+        if(!munroCompletedEntry.isPresent()){
+            logger.info("Failed to find munroCompleted entry " + munroCompletedId);
+            throw new RuntimeException("Failed to find Munro Completed entry with id" + munroCompletedId);
+        }
+
+        var currentUser = userRepository.findById(currentUserId);
+        if(!currentUser.isPresent()){
+            logger.info("Failed to find user entry " + currentUserId);
+            throw new RuntimeException("Failed to find user entry with id" + currentUserId);
+        }
+
+        var commentEntity = new MunroCompletedCommentEntity(munroCompletedEntry.get(), currentUser.get(), LocalDateTime.now(), comment);
+        munroCompletedCommentRepository.save(commentEntity);
+
+        logger.info("Successfully posted a comment from user " + currentUserId + " on munro completed entry " + munroCompletedId);
+    }
+
+    private List<MunroCompletedCommentDto> mapCompletedCommentEntityToDetailsDto(List<MunroCompletedCommentEntity> entity, UserEntity user){
+        List<MunroCompletedCommentDto> commentCollection = new ArrayList<>();
+
+        entity.forEach((completedCommentEntity) -> {
+            commentCollection.add(
+                    new MunroCompletedCommentDto(user.getId(), user.getName(), completedCommentEntity.getComment(), LocalDateTime.now())
+            );
+        });
+
+        return commentCollection;
+    }
+    private List<MunroCompletedKudosDto> mapCompletedKudosEntityToDetailsDto(List<MunroCompletedKudosEntity> entity, UserEntity user){
+        List<MunroCompletedKudosDto> kudosCollection = new ArrayList<>();
+
+        entity.forEach((munroEntry) -> {
+            kudosCollection.add(new MunroCompletedKudosDto(
+                    munroEntry.getMunroCompleted().getId(),
+                    user.getName(),
+                    user.getId(),
+                    LocalDateTime.now()
+            ));
+        });
+
+        return kudosCollection;
     }
 }

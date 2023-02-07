@@ -61,6 +61,22 @@ public class UserEntity {
         this.munroCompletedEntities = munroCompletedEntities;
     }
 
+    public List<UserFollowersEntity> getUserFollowing() {
+        return userFollowing;
+    }
+
+    public void setUserFollowing(List<UserFollowersEntity> userFollowing) {
+        this.userFollowing = userFollowing;
+    }
+
+    public List<UserFollowersEntity> getUserFollowers() {
+        return userFollowers;
+    }
+
+    public void setUserFollowers(List<UserFollowersEntity> userFollowers) {
+        this.userFollowers = userFollowers;
+    }
+
     @OneToMany(mappedBy = "user", fetch = FetchType.EAGER)
     private List<MunroCompletedEntity> munroCompletedEntities;
 
@@ -69,4 +85,7 @@ public class UserEntity {
 
     @OneToMany(mappedBy = "to", fetch = FetchType.EAGER)
     private List<UserFollowersEntity> userFollowers;
+
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+    private List<MunroCompletedKudosEntity> userKudos;
 }

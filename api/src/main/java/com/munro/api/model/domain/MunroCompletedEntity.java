@@ -3,6 +3,7 @@ package com.munro.api.model.domain;
 
 import jakarta.persistence.*;
 import java.time.LocalDate;
+import java.util.List;
 
 @Entity
 @Table
@@ -10,9 +11,9 @@ public class MunroCompletedEntity {
     public MunroCompletedEntity() {
     }
 
-    public MunroCompletedEntity(UserEntity user, Long munro_id, LocalDate date) {
+    public MunroCompletedEntity(UserEntity user, MunroEntity munro, LocalDate date) {
         this.user = user;
-        this.munro_id = munro_id;
+        this.munro = munro;
         this.date = date;
     }
 
@@ -31,7 +32,33 @@ public class MunroCompletedEntity {
     @ManyToOne
     @JoinColumn(name = "user_id", referencedColumnName = "id")
     private UserEntity user;
-    private Long munro_id;
+
+    @ManyToOne
+    @JoinColumn(name = "munro_id", referencedColumnName = "id")
+    private MunroEntity munro;
+
+    @OneToMany(mappedBy = "munroCompleted", fetch = FetchType.EAGER)
+    private List<MunroCompletedKudosEntity> munroCompletedKudosEntities;
+
+    public List<MunroCompletedCommentEntity> getMunroCompletedCommentEntities() {
+        return munroCompletedCommentEntities;
+    }
+
+    public void setMunroCompletedCommentEntities(List<MunroCompletedCommentEntity> munroCompletedCommentEntities) {
+        this.munroCompletedCommentEntities = munroCompletedCommentEntities;
+    }
+
+    @OneToMany(mappedBy = "munroCompleted", fetch = FetchType.EAGER)
+    private List<MunroCompletedCommentEntity> munroCompletedCommentEntities;
+
+    public List<MunroCompletedKudosEntity> getMunroCompletedKudosEntities() {
+        return munroCompletedKudosEntities;
+    }
+
+    public void setMunroCompletedKudosEntities(List<MunroCompletedKudosEntity> munroCompletedKudosEntities) {
+        this.munroCompletedKudosEntities = munroCompletedKudosEntities;
+    }
+
     private LocalDate date;
 
     public Long getId() {
@@ -42,12 +69,12 @@ public class MunroCompletedEntity {
         this.id = id;
     }
 
-    public Long getMunro_id() {
-        return munro_id;
+    public MunroEntity getMunro() {
+        return munro;
     }
 
-    public void setMunro_id(Long munro_id) {
-        this.munro_id = munro_id;
+    public void setMunro(MunroEntity munro) {
+        this.munro = munro;
     }
 
     public LocalDate getDate() {

@@ -29,7 +29,7 @@ public class UserController {
         return savedUser != null;
     }
 
-    @PutMapping("{userId}/follow")
+    @PutMapping("{userId}/actions/follow")
     public void followUser(
             @RequestParam("currentUserId") Long currentUserId,
             @PathVariable("userId") Long userToFollowId
@@ -37,7 +37,7 @@ public class UserController {
         userService.followUser(currentUserId, userToFollowId);
     }
 
-    @PutMapping("{userId}/unfollow")
+    @PutMapping("{userId}/actions/unfollow")
     public void unfollowUser(
             @RequestParam("currentUserId") Long currentUserId,
             @PathVariable("userId") Long userToUnfollowId

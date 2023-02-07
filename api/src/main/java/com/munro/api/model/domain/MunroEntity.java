@@ -2,6 +2,8 @@ package com.munro.api.model.domain;
 
 import jakarta.persistence.*;
 
+import java.util.List;
+
 @Entity
 @Table
 public class MunroEntity {
@@ -93,4 +95,18 @@ public class MunroEntity {
     private double longitude;
     private String region;
     private String meaningOfName;
+
+    @OneToMany(mappedBy = "munro", fetch = FetchType.EAGER)
+    private List<MunroCompletedEntity> munroCompletedEntities;
+
+
+    public List<MunroCompletedEntity> getMunroCompletedEntities() {
+        return munroCompletedEntities;
+    }
+
+    public void setMunroCompletedEntities(List<MunroCompletedEntity> munroCompletedEntities) {
+        this.munroCompletedEntities = munroCompletedEntities;
+    }
+
+
 }
