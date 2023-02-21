@@ -15,6 +15,16 @@ public class MunroDetailsDto {
     private List<MunroCompletedCommentDto> munroCompletedCommentDtoList;
     private List<MunroCompletedKudosDto> munroCompletedKudosDtoList;
 
+    public List<WeatherDtoTemp> getMunroWeather() {
+        return munroWeather;
+    }
+
+    public void setMunroWeather(List<WeatherDtoTemp> munroWeather) {
+        this.munroWeather = munroWeather;
+    }
+
+    private List<WeatherDtoTemp> munroWeather;
+
     public MunroDetailsDto(String name, int height, double latitude, double longitude, String region, String meaningOfName, boolean completed, List<MunroCompletedCommentDto> munroCompletedCommentDtoList, List<MunroCompletedKudosDto> munroCompletedKudosDtoList) {
         this.name = name;
         this.height = height;

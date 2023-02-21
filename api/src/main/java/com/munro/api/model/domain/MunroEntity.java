@@ -98,7 +98,15 @@ public class MunroEntity {
 
     @OneToMany(mappedBy = "munro", fetch = FetchType.EAGER)
     private List<MunroCompletedEntity> munroCompletedEntities;
+    @OneToMany(mappedBy = "munro", fetch = FetchType.LAZY)
+    private List<MunroWeatherEntity> munroWeatherEntities;
 
+    public List<MunroWeatherEntity> getMunroWeatherEntities() {
+        return munroWeatherEntities;
+    }
+    public void setMunroWeatherEntities(List<MunroWeatherEntity> munroWeatherEntities) {
+        this.munroWeatherEntities = munroWeatherEntities;
+    }
 
     public List<MunroCompletedEntity> getMunroCompletedEntities() {
         return munroCompletedEntities;

@@ -11,4 +11,7 @@ public class ConfigProperties {
 
     @Value("${app.munroCountCap}")
     public int munroCountCap;
+
+    @Value("${app.weatherApiKey}")
+    public String weatherApiKey;
 }
