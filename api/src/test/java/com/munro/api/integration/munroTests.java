@@ -52,7 +52,7 @@ public class munroTests {
         user2 = userRepository.save(new UserEntity("Steve", "Steve@mailinator.com"));
 
         userService.followUser(user1.getId(), user2.getId());
-
+        munroRepository.save(new MunroEntity("Ben Nevis", 10, 10, 10, "Scotland", "N/A"));
         selectedMunro = munroRepository.findAll().stream().findFirst().get();
     }
 
@@ -104,5 +104,11 @@ public class munroTests {
         Assert.assertNotNull(munroKudos);
         Assert.assertTrue(munroKudos.size() == 1);
         //Assert.assertTrue(munroKudos.stream().findFirst().get().getUserName() == user1.getName());
+    }
+
+    @Test
+    public void shouldReturnWeather(){
+        var weatherEntities = munroService.getWeatherForecast(selectedMunro.getId());
+        Assert.assertNotNull(weatherEntities);
     }
 }

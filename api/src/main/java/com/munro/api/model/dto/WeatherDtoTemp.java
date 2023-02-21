@@ -9,7 +9,10 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class UserDetailsDto {
-    private String name;
-    private String email;
+public class WeatherDtoTemp{
+    private String description;
+    private String date;
+    private String visibility;
+    private String temp;
+    private String tempFeelsLike;
 }

@@ -1,16 +1,15 @@
 package com.munro.api.service;
 
 import com.munro.api.model.domain.*;
-import com.munro.api.model.dto.MunroCompletedCommentDto;
-import com.munro.api.model.dto.MunroCompletedKudosDto;
-import com.munro.api.model.dto.MunroDetailsDto;
-import com.munro.api.model.dto.MunroFeedDetailsDto;
+import com.munro.api.model.dto.*;
 import com.munro.api.properties.ConfigProperties;
 import com.munro.api.repository.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Example;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -28,6 +27,8 @@ public class MunroService {
     @Autowired
     private final MunroRepository munroRepository;
     @Autowired
+    private final MunroWeatherRepository munroWeatherRepository;
+    @Autowired
     private final MunroCompletedRepository munroCompletedRepository;
     @Autowired
     private final MunroCompletedKudosRepository munroCompletedKudosRepository;
@@ -40,8 +41,9 @@ public class MunroService {
     protected final ConfigProperties configProperties;
 
     @Autowired
-    public MunroService(MunroRepository munroRepository, ConfigProperties configProperties, MunroCompletedRepository munroCompletedRepository, MunroCompletedKudosRepository munroCompletedKudosRepository, MunroCompletedCommentRepository munroCompletedCommentRepository, UserRepository userRepository){
+    public MunroService(MunroRepository munroRepository, MunroWeatherRepository munroWeatherRepository, ConfigProperties configProperties, MunroCompletedRepository munroCompletedRepository, MunroCompletedKudosRepository munroCompletedKudosRepository, MunroCompletedCommentRepository munroCompletedCommentRepository, UserRepository userRepository){
         this.munroRepository = munroRepository;
+        this.munroWeatherRepository = munroWeatherRepository;
         this.configProperties = configProperties;
         this.munroCompletedRepository = munroCompletedRepository;
         this.munroCompletedKudosRepository = munroCompletedKudosRepository;
@@ -63,11 +65,12 @@ public class MunroService {
         int lineCount = 0;
 
         try {
+            munroWeatherRepository.deleteAll();
             munroRepository.deleteAll();
 
             var fileName = System.getProperty("user.dir") + "\\src\\main\\java\\com\\munro\\api\\data\\munros.csv";
             var br = new BufferedReader(new FileReader(fileName));
-            while((line = br.readLine()) != null && lineCount < configProperties.munroCountCap){
+            while((line = br.readLine()) != null && lineCount <= configProperties.munroCountCap){
                 if(lineCount == 0){
                     lineCount++;
                     continue;
@@ -105,6 +108,7 @@ public class MunroService {
         logger.info("Successfully populated databases with " + lineCount + " munros.");
     }
 
+    @Transactional
     public List<MunroDetailsDto> getMunros(Long userId){
         logger.info("Attempting to retrieve the munros.");
         var munros = this.munroRepository.findAll();
@@ -119,7 +123,7 @@ public class MunroService {
                     .stream()
                     .filter(p -> p.getMunro().getId() == munro.getId()).count() > 0 : false;
 
-            munroResponse.add(new MunroDetailsDto(
+            var dto = new MunroDetailsDto(
                     munro.getName(),
                     munro.getHeight(),
                     munro.getLatitude(),
@@ -127,7 +131,22 @@ public class MunroService {
                     munro.getRegion(),
                     munro.getMeaningOfName(),
                     hasCompletedMunro ? true : false
-            ));
+            );
+
+            List<WeatherDtoTemp> weatherDtoTemps = new ArrayList<>();
+            for(var weatherEntity : munro.getMunroWeatherEntities()){
+                weatherDtoTemps.add(new WeatherDtoTemp(
+                        weatherEntity.getDescription(),
+                        weatherEntity.getDate(),
+                        weatherEntity.getVisibility(),
+                        weatherEntity.getTemp().toString(),
+                        weatherEntity.getTempFeelsLike().toString()
+                ));
+            }
+
+            dto.setMunroWeather(weatherDtoTemps);
+
+            munroResponse.add(dto);
         }
 
         logger.info("Successfully retrieved the munros.");
@@ -223,6 +242,24 @@ public class MunroService {
         munroFeedDetails.setMunroCompletedKudosDtoList(kudosEntries);
 
         return munroFeedDetails;
+    }
+
+    public List<WeatherDtoTemp> getWeatherForecast(Long munroId){
+        var munro = munroRepository.findById(munroId);
+
+
+        var exampleWeather = new MunroWeatherEntity();
+        exampleWeather.setMunro(munro.get());
+
+        var weatherEntities = munroWeatherRepository.findAll(Example.of(exampleWeather));
+        List<WeatherDtoTemp> weatherDtoTemps = new ArrayList<>();
+        for(var weather : weatherEntities){
+            weatherDtoTemps.add(
+                    new WeatherDtoTemp(weather.getDescription(), weather.getDate(), weather.getVisibility(), weather.getTemp().toString(), weather.getTempFeelsLike().toString())
+            );
+        }
+
+        return weatherDtoTemps;
     }
 
     public void giveKudos(Long munroCompletedId, Long currentUserId) {

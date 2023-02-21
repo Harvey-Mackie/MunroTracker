@@ -2,15 +2,19 @@ package com.munro.api.model.domain;
 
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import java.time.LocalDate;
 import java.util.List;
 
 @Entity
 @Table
+@Getter
+@Setter
+@NoArgsConstructor
 public class MunroCompletedEntity {
-    public MunroCompletedEntity() {
-    }
-
     public MunroCompletedEntity(UserEntity user, MunroEntity munro, LocalDate date) {
         this.user = user;
         this.munro = munro;
@@ -40,57 +44,9 @@ public class MunroCompletedEntity {
     @OneToMany(mappedBy = "munroCompleted", fetch = FetchType.EAGER)
     private List<MunroCompletedKudosEntity> munroCompletedKudosEntities;
 
-    public List<MunroCompletedCommentEntity> getMunroCompletedCommentEntities() {
-        return munroCompletedCommentEntities;
-    }
-
-    public void setMunroCompletedCommentEntities(List<MunroCompletedCommentEntity> munroCompletedCommentEntities) {
-        this.munroCompletedCommentEntities = munroCompletedCommentEntities;
-    }
-
     @OneToMany(mappedBy = "munroCompleted", fetch = FetchType.EAGER)
     private List<MunroCompletedCommentEntity> munroCompletedCommentEntities;
 
-    public List<MunroCompletedKudosEntity> getMunroCompletedKudosEntities() {
-        return munroCompletedKudosEntities;
-    }
-
-    public void setMunroCompletedKudosEntities(List<MunroCompletedKudosEntity> munroCompletedKudosEntities) {
-        this.munroCompletedKudosEntities = munroCompletedKudosEntities;
-    }
-
     private LocalDate date;
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public MunroEntity getMunro() {
-        return munro;
-    }
-
-    public void setMunro(MunroEntity munro) {
-        this.munro = munro;
-    }
-
-    public LocalDate getDate() {
-        return date;
-    }
-
-    public void setDate(LocalDate date) {
-        this.date = date;
-    }
-
-    public UserEntity getUser() {
-        return user;
-    }
-
-    public void setUser(UserEntity user) {
-        this.user = user;
-    }
 
 }

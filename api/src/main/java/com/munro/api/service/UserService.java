@@ -1,6 +1,5 @@
 package com.munro.api.service;
 
-import com.munro.api.model.domain.UserEntity;
 import com.munro.api.model.domain.UserFollowersEntity;
 import com.munro.api.repository.UserFollowersRepository;
 import com.munro.api.repository.UserRepository;
@@ -47,15 +46,5 @@ public class UserService {
         });
 
         logger.info("User "+ currentUserId + " is now unfollowing user " + userToUnfollowId);
-    }
-
-    public UserEntity userDetails(Long currentUserId){
-        var user = userRepository.findById(currentUserId);
-
-        if(!user.isPresent()){
-            throw new RuntimeException("User does not exist.");
-        }
-
-        return user.get();
     }
 }
