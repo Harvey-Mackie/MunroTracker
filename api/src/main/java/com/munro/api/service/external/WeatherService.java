@@ -7,6 +7,7 @@ import com.munro.api.model.dto.WeatherDtoTemp;
 import com.munro.api.model.response.MetOfficeSiteCollection;
 import com.munro.api.model.response.MetOfficeSiteRep;
 import com.munro.api.properties.ConfigProperties;
+import lombok.SneakyThrows;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,7 +41,8 @@ public class WeatherService {
         httpClient = HttpClient.newHttpClient();
     }
 
-    public List<WeatherDtoTemp> getWeatherForNext5Days(String munroName) throws URISyntaxException, IOException, InterruptedException {
+    @SneakyThrows
+    public List<WeatherDtoTemp> getWeatherForNext5Days(String munroName){
         Map<String, Integer> siteLocations = getWeatherSiteLocations();
 
         if(!siteLocations.containsKey(munroName)){
@@ -82,7 +84,8 @@ public class WeatherService {
         return new ArrayList<>();
     }
 
-    private Map<String, Integer> getWeatherSiteLocations() throws URISyntaxException, IOException, InterruptedException {
+    @SneakyThrows
+    private Map<String, Integer> getWeatherSiteLocations(){
         Map<String,Integer> weatherSiteLocations = new HashMap<>();
         String url = "http://datapoint.metoffice.gov.uk/public/data/val/wxfcs/all/datatype/sitelist?key=" + configProperties.weatherApiKey;
 

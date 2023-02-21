@@ -1,10 +1,16 @@
 package com.munro.api.model.domain;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 
 @Table
 @Entity
+@Getter
+@Setter
+@NoArgsConstructor
 public class UserFollowersEntity {
     @Id
     @SequenceGenerator(
@@ -28,33 +34,6 @@ public class UserFollowersEntity {
 
     public UserFollowersEntity(UserEntity from, UserEntity to) {
         this.from = from;
-        this.to = to;
-    }
-
-    public UserFollowersEntity() {
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public UserEntity getFrom() {
-        return from;
-    }
-
-    public void setFrom(UserEntity from) {
-        this.from = from;
-    }
-
-    public UserEntity getTo() {
-        return to;
-    }
-
-    public void setTo(UserEntity to) {
         this.to = to;
     }
 }

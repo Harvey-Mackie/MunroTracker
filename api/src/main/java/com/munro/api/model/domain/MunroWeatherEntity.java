@@ -1,14 +1,16 @@
 package com.munro.api.model.domain;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Table
+@Getter
+@Setter
+@NoArgsConstructor
 public class MunroWeatherEntity {
-
-    public MunroWeatherEntity() {
-    }
-
     @Id
     @SequenceGenerator(
             name = "munro_weather_sequence",
@@ -38,60 +40,4 @@ public class MunroWeatherEntity {
     @ManyToOne
     @JoinColumn(name = "munro_id", referencedColumnName = "id")
     private MunroEntity munro;
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public String getDate() {
-        return date;
-    }
-
-    public void setDate(String date) {
-        this.date = date;
-    }
-
-    public String getVisibility() {
-        return visibility;
-    }
-
-    public void setVisibility(String visibility) {
-        this.visibility = visibility;
-    }
-
-    public Double getTemp() {
-        return temp;
-    }
-
-    public void setTemp(Double temp) {
-        this.temp = temp;
-    }
-
-    public Double getTempFeelsLike() {
-        return tempFeelsLike;
-    }
-
-    public void setTempFeelsLike(Double tempFeelsLike) {
-        this.tempFeelsLike = tempFeelsLike;
-    }
-
-    public MunroEntity getMunro() {
-        return munro;
-    }
-
-    public void setMunro(MunroEntity munro) {
-        this.munro = munro;
-    }
 }

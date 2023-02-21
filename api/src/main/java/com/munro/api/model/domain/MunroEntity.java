@@ -1,11 +1,17 @@
 package com.munro.api.model.domain;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.util.List;
 
 @Entity
 @Table
+@Getter
+@Setter
+@NoArgsConstructor
 public class MunroEntity {
 
     @Id
@@ -22,9 +28,6 @@ public class MunroEntity {
     private String name;
     private int height;
 
-    public MunroEntity() {
-    }
-
     public MunroEntity(String name, int height, double latitde, double longitude, String region, String meaningOfName) {
         this.name = name;
         this.height = height;
@@ -35,63 +38,6 @@ public class MunroEntity {
     }
 
     private double latitude;
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public int getHeight() {
-        return height;
-    }
-
-    public void setHeight(int height) {
-        this.height = height;
-    }
-
-    public double getLatitude() {
-        return latitude;
-    }
-
-    public void setLatitude(double latitude) {
-        this.latitude = latitude;
-    }
-
-    public double getLongitude() {
-        return longitude;
-    }
-
-    public void setLongitude(double longitude) {
-        this.longitude = longitude;
-    }
-
-    public String getRegion() {
-        return region;
-    }
-
-    public void setRegion(String region) {
-        this.region = region;
-    }
-
-    public String getMeaningOfName() {
-        return meaningOfName;
-    }
-
-    public void setMeaningOfName(String meaningOfName) {
-        this.meaningOfName = meaningOfName;
-    }
-
     private double longitude;
     private String region;
     private String meaningOfName;
@@ -100,21 +46,4 @@ public class MunroEntity {
     private List<MunroCompletedEntity> munroCompletedEntities;
     @OneToMany(mappedBy = "munro", fetch = FetchType.LAZY)
     private List<MunroWeatherEntity> munroWeatherEntities;
-
-    public List<MunroWeatherEntity> getMunroWeatherEntities() {
-        return munroWeatherEntities;
-    }
-    public void setMunroWeatherEntities(List<MunroWeatherEntity> munroWeatherEntities) {
-        this.munroWeatherEntities = munroWeatherEntities;
-    }
-
-    public List<MunroCompletedEntity> getMunroCompletedEntities() {
-        return munroCompletedEntities;
-    }
-
-    public void setMunroCompletedEntities(List<MunroCompletedEntity> munroCompletedEntities) {
-        this.munroCompletedEntities = munroCompletedEntities;
-    }
-
-
 }

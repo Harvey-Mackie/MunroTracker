@@ -1,11 +1,17 @@
 package com.munro.api.model.domain;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 
 @Entity
 @Table
+@Getter
+@Setter
+@NoArgsConstructor
 public class MunroCompletedCommentEntity {
     @Id
     @SequenceGenerator(
@@ -30,53 +36,10 @@ public class MunroCompletedCommentEntity {
     private LocalDateTime date;
     private String comment;
 
-    public MunroCompletedCommentEntity() {
-    }
-
     public MunroCompletedCommentEntity(MunroCompletedEntity munroCompleted, UserEntity user, LocalDateTime date, String comment) {
         this.munroCompleted = munroCompleted;
         this.user = user;
         this.date = date;
-        this.comment = comment;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public MunroCompletedEntity getMunroCompleted() {
-        return munroCompleted;
-    }
-
-    public void setMunroCompleted(MunroCompletedEntity munroCompleted) {
-        this.munroCompleted = munroCompleted;
-    }
-
-    public UserEntity getUser() {
-        return user;
-    }
-
-    public void setUser(UserEntity user) {
-        this.user = user;
-    }
-
-    public LocalDateTime getDate() {
-        return date;
-    }
-
-    public void setDate(LocalDateTime date) {
-        this.date = date;
-    }
-
-    public String getComment() {
-        return comment;
-    }
-
-    public void setComment(String comment) {
         this.comment = comment;
     }
 }
