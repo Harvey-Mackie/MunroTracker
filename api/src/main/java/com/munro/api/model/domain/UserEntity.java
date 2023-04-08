@@ -42,16 +42,16 @@ public class UserEntity implements UserDetails {
     private Role role;
 
     @OneToMany(mappedBy = "user", fetch = FetchType.EAGER)
-    private transient List<MunroCompletedEntity> munroCompletedEntities;
+    private List<MunroCompletedEntity> munroCompletedEntities;
 
     @OneToMany(mappedBy = "from", fetch = FetchType.EAGER)
-    private transient List<UserFollowersEntity> userFollowing;
+    private List<UserFollowersEntity> userFollowing;
 
     @OneToMany(mappedBy = "to", fetch = FetchType.EAGER)
-    private transient List<UserFollowersEntity> userFollowers;
+    private List<UserFollowersEntity> userFollowers;
 
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
-    private transient List<MunroCompletedKudosEntity> userKudos;
+    private List<MunroCompletedKudosEntity> userKudos;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

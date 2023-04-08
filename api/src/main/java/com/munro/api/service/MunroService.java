@@ -4,6 +4,7 @@ import com.munro.api.model.domain.*;
 import com.munro.api.model.dto.*;
 import com.munro.api.properties.ConfigProperties;
 import com.munro.api.repository.*;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class MunroService {
 
     private final Logger logger = LoggerFactory.getLogger(MunroService.class);
@@ -39,17 +41,6 @@ public class MunroService {
     private final UserRepository userRepository;
     @Autowired
     protected final ConfigProperties configProperties;
-
-    @Autowired
-    public MunroService(MunroRepository munroRepository, MunroWeatherRepository munroWeatherRepository, ConfigProperties configProperties, MunroCompletedRepository munroCompletedRepository, MunroCompletedKudosRepository munroCompletedKudosRepository, MunroCompletedCommentRepository munroCompletedCommentRepository, UserRepository userRepository){
-        this.munroRepository = munroRepository;
-        this.munroWeatherRepository = munroWeatherRepository;
-        this.configProperties = configProperties;
-        this.munroCompletedRepository = munroCompletedRepository;
-        this.munroCompletedKudosRepository = munroCompletedKudosRepository;
-        this.munroCompletedCommentRepository = munroCompletedCommentRepository;
-        this.userRepository = userRepository;
-    }
 
     public void FetchMunros() {
         logger.info("Attempting to fetch munros from CSV file and populate the database.");
@@ -196,8 +187,8 @@ public class MunroService {
                             completedMunro.getMunro().getRegion(),
                             completedMunro.getMunro().getMeaningOfName(),
                             true,
-                            mapCompletedCommentEntityToDetailsDto(completedMunro.getMunroCompletedCommentEntities(), currentUser.get()),
-                            mapCompletedKudosEntityToDetailsDto(completedMunro.getMunroCompletedKudosEntities(), currentUser.get()),
+                            mapCompletedCommentEntityToDetailsDto(completedMunro.getMunroCompletedCommentEntities()),
+                            mapCompletedKudosEntityToDetailsDto(completedMunro.getMunroCompletedKudosEntities()),
                             completedMunro.getUser().getName()
                         )
                 );
@@ -223,8 +214,8 @@ public class MunroService {
                 completedMunro.getMunro().getRegion(),
                 completedMunro.getMunro().getMeaningOfName(),
                 true,
-                mapCompletedCommentEntityToDetailsDto(completedMunro.getMunroCompletedCommentEntities(), completedMunro.getUser()),
-                mapCompletedKudosEntityToDetailsDto(completedMunro.getMunroCompletedKudosEntities(), completedMunro.getUser()),
+                mapCompletedCommentEntityToDetailsDto(completedMunro.getMunroCompletedCommentEntities()),
+                mapCompletedKudosEntityToDetailsDto(completedMunro.getMunroCompletedKudosEntities()),
                 completedMunro.getUser().getName()
         );
 
@@ -304,25 +295,25 @@ public class MunroService {
         logger.info("Successfully posted a comment from user " + currentUserId + " on munro completed entry " + munroCompletedId);
     }
 
-    private List<MunroCompletedCommentDto> mapCompletedCommentEntityToDetailsDto(List<MunroCompletedCommentEntity> entity, UserEntity user){
+    private List<MunroCompletedCommentDto> mapCompletedCommentEntityToDetailsDto(List<MunroCompletedCommentEntity> entity){
         List<MunroCompletedCommentDto> commentCollection = new ArrayList<>();
 
         entity.forEach((completedCommentEntity) -> {
             commentCollection.add(
-                    new MunroCompletedCommentDto(user.getId(), user.getName(), completedCommentEntity.getComment(), LocalDateTime.now())
+                    new MunroCompletedCommentDto(completedCommentEntity.getUser().getId(), completedCommentEntity.getUser().getName(), completedCommentEntity.getComment(), LocalDateTime.now())
             );
         });
 
         return commentCollection;
     }
-    private List<MunroCompletedKudosDto> mapCompletedKudosEntityToDetailsDto(List<MunroCompletedKudosEntity> entity, UserEntity user){
+    private List<MunroCompletedKudosDto> mapCompletedKudosEntityToDetailsDto(List<MunroCompletedKudosEntity> entity){
         List<MunroCompletedKudosDto> kudosCollection = new ArrayList<>();
 
         entity.forEach((munroEntry) -> {
             kudosCollection.add(new MunroCompletedKudosDto(
                     munroEntry.getMunroCompleted().getId(),
-                    user.getName(),
-                    user.getId(),
+                    munroEntry.getUser().getName(),
+                    munroEntry.getUser().getId(),
                     LocalDateTime.now()
             ));
         });

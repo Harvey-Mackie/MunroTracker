@@ -8,6 +8,7 @@ import com.munro.api.repository.UserRepository;
 import com.munro.api.service.MunroService;
 import com.munro.api.service.UserService;
 import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,7 +26,7 @@ import java.time.LocalDate;
 @TestPropertySource(
         locations = "classpath:application-integrationtest.properties"
 )
-public class munroTests {
+class MunroTests {
 
     //Properties required for testing - assigned in BeforeEach method.
     private MunroEntity selectedMunro;
@@ -47,7 +48,7 @@ public class munroTests {
     private MunroRepository munroRepository;
 
     @BeforeEach
-    public void setUpUsersAndMunros(){
+    void setUpUsersAndMunros(){
         user1= userRepository.save(new UserEntity("Harvey", "Harvey@mailinator.com"));
         user2 = userRepository.save(new UserEntity("Steve", "Steve@mailinator.com"));
 
@@ -57,28 +58,28 @@ public class munroTests {
     }
 
     @Test
-    public void shouldCompleteMunro(){
+    void shouldCompleteMunro(){
         munroService.SetMunroToComplete(user2.getId(), selectedMunro.getId(), LocalDate.now());
         var munroCollection = munroService.getMunros(user2.getId());
 
         var munro = munroCollection.stream().findFirst().get();
 
-        Assert.assertEquals(munro.getName(), "Ben Nevis");
+        Assert.assertEquals("Ben Nevis", munro.getName());
         Assert.assertTrue(munro.isCompleted());
     }
 
     @Test
-    public void shouldShowCompletedMunrosOnFollowersFeed(){
+    void shouldShowCompletedMunrosOnFollowersFeed(){
         munroService.SetMunroToComplete(user2.getId(), selectedMunro.getId(), LocalDate.now());
 
         var feed = munroService.feed(user1.getId());
 
-        Assert.assertTrue(feed.size() == 1);
-        Assert.assertTrue(feed.stream().findFirst().get().isCompleted());
+        Assert.assertEquals(1, feed.size());
+        Assertions.assertTrue(feed.stream().findFirst().get().isCompleted());
     }
 
     @Test
-    public void shouldAllowUserToPostCommentOnCompletedMunro(){
+    void shouldAllowUserToPostCommentOnCompletedMunro(){
         var selectedMunroPostingId = munroService.SetMunroToComplete(user2.getId(), selectedMunro.getId(), LocalDate.now());
 
         munroService.postComment(selectedMunroPostingId, user1.getId(), "Test");
@@ -87,27 +88,29 @@ public class munroTests {
 
         var munroComments = munro.getMunroCompletedCommentDtoList();
 
-        Assert.assertNotNull(munroComments);
-        Assert.assertTrue(munroComments.size() == 1);
-        Assert.assertTrue(munroComments.stream().findFirst().get().getComment() == "Test");
-        //Assert.assertTrue(munroComments.stream().findFirst().get().getUserName() == user1.getName());
+        Assertions.assertNotNull(munroComments);
+        Assertions.assertEquals(1, munroComments.size());
+
+        var firstComment = munroComments.stream().findFirst().get();
+        Assertions.assertSame("Test", firstComment.getComment());
+        Assertions.assertSame(firstComment.getUserName(), user1.getName());
     }
 
     @Test
-    public void shouldAllowUserToKudosACompletedMunro(){
+    void shouldAllowUserToKudosACompletedMunro(){
         var selectedMunroPostingId = munroService.SetMunroToComplete(user2.getId(), selectedMunro.getId(), LocalDate.now());
 
         munroService.giveKudos(selectedMunroPostingId, user1.getId());
         var munro = munroService.getMunroCompleted(selectedMunroPostingId);
         var munroKudos = munro.getMunroCompletedKudosDtoList();
 
-        Assert.assertNotNull(munroKudos);
-        Assert.assertTrue(munroKudos.size() == 1);
-        //Assert.assertTrue(munroKudos.stream().findFirst().get().getUserName() == user1.getName());
+        Assertions.assertNotNull(munroKudos);
+        Assertions.assertEquals(1, munroKudos.size());
+        Assertions.assertSame(munroKudos.stream().findFirst().get().getUserName(), user1.getName());
     }
 
     @Test
-    public void shouldReturnWeather(){
+    void shouldReturnWeather(){
         var weatherEntities = munroService.getWeatherForecast(selectedMunro.getId());
         Assert.assertNotNull(weatherEntities);
     }
