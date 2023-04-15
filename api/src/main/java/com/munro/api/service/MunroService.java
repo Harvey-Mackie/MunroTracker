@@ -1,6 +1,6 @@
 package com.munro.api.service;
 
-import com.munro.api.model.domain.*;
+import com.munro.api.model.entities.*;
 import com.munro.api.model.dto.*;
 import com.munro.api.properties.ConfigProperties;
 import com.munro.api.repository.*;
@@ -20,6 +20,8 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.munro.api.utils.MunroServiceUtil.mapMunroCompletedEntityToMunroFeedDetailsDto;
 
 @Service
 @RequiredArgsConstructor
@@ -42,7 +44,7 @@ public class MunroService {
     @Autowired
     protected final ConfigProperties configProperties;
 
-    public void FetchMunros() {
+    public void fetchMunros() {
         logger.info("Attempting to fetch munros from CSV file and populate the database.");
 
         if(!configProperties.refreshMunroDatabase){
@@ -83,7 +85,7 @@ public class MunroService {
                         )
                 );
 
-                logger.info("Processed " + data[1] + " munro.");
+                logger.info("Processed {} munro.", data[1]);
 
                 lineCount++;
             }
@@ -96,7 +98,7 @@ public class MunroService {
         }
 
         munroRepository.saveAll(munroEntities);
-        logger.info("Successfully populated databases with " + lineCount + " munros.");
+        logger.info("Successfully populated databases with {} munros.", lineCount);
     }
 
     @Transactional
@@ -144,18 +146,18 @@ public class MunroService {
         return munroResponse;
     }
 
-    public Long SetMunroToComplete(Long userId, Long munroId, LocalDate date) {
+    public Long setMunroToComplete(Long userId, Long munroId, LocalDate date) {
         logger.info("Attempting to set munro to completed.");
 
         var user = userRepository.findById(userId);
-        if(user.isPresent() == false){
-            logger.info("Failed to find a user with the id " + userId);
+        if(user.isEmpty()){
+            logger.info("Failed to find a user with the id {}.", userId);
             throw new RuntimeException("Failed to find user with id " + userId);
         }
 
         var munro = munroRepository.findById(munroId);
-        if(munro.isPresent() == false){
-            logger.info("Failed to find a munro with the id " + munroId);
+        if(munro.isEmpty()){
+            logger.info("Failed to find a munro with the id {}.", munroId);
             throw new RuntimeException("Failed to find munro with id " + munroId);
         }
 
@@ -171,29 +173,14 @@ public class MunroService {
     public List<MunroFeedDetailsDto> feed(Long currentUserId) {
         var currentUser = userRepository.findById(currentUserId);
 
-        if(!currentUser.isPresent()){
+        if(currentUser.isEmpty()){
             throw new RuntimeException("Failed to find user with id " + currentUserId);
         }
 
         List<MunroFeedDetailsDto> feed = new ArrayList<>();
-        currentUser.get().getUserFollowing().forEach(user -> {
-            user.getTo().getMunroCompletedEntities().forEach( completedMunro -> {
-                feed.add(
-                        new MunroFeedDetailsDto(
-                            completedMunro.getMunro().getName(),
-                            completedMunro.getMunro().getHeight(),
-                            completedMunro.getMunro().getLatitude(),
-                            completedMunro.getMunro().getLongitude(),
-                            completedMunro.getMunro().getRegion(),
-                            completedMunro.getMunro().getMeaningOfName(),
-                            true,
-                            mapCompletedCommentEntityToDetailsDto(completedMunro.getMunroCompletedCommentEntities()),
-                            mapCompletedKudosEntityToDetailsDto(completedMunro.getMunroCompletedKudosEntities()),
-                            completedMunro.getUser().getName()
-                        )
-                );
-            });
-        });
+        currentUser.get().getUserFollowing().forEach(
+                user -> user.getTo().getMunroCompletedEntities().forEach(
+                        completedMunro -> feed.add(mapMunroCompletedEntityToMunroFeedDetailsDto(completedMunro))));
 
         return feed;
     }
@@ -201,34 +188,22 @@ public class MunroService {
     public MunroFeedDetailsDto getMunroCompleted(Long munroCompletedId) {
         var munroCompletedEntry = munroCompletedRepository.findById(munroCompletedId);
 
-        if(!munroCompletedEntry.isPresent()){
+        if(munroCompletedEntry.isEmpty()){
             throw new RuntimeException("Failed to find Munro Completed entry with id" + munroCompletedId);
         }
 
         var completedMunro = munroCompletedEntry.get();
-        var munroFeedDetails =  new MunroFeedDetailsDto(
-                completedMunro.getMunro().getName(),
-                completedMunro.getMunro().getHeight(),
-                completedMunro.getMunro().getLatitude(),
-                completedMunro.getMunro().getLongitude(),
-                completedMunro.getMunro().getRegion(),
-                completedMunro.getMunro().getMeaningOfName(),
-                true,
-                mapCompletedCommentEntityToDetailsDto(completedMunro.getMunroCompletedCommentEntities()),
-                mapCompletedKudosEntityToDetailsDto(completedMunro.getMunroCompletedKudosEntities()),
-                completedMunro.getUser().getName()
-        );
-
+        var munroFeedDetails = mapMunroCompletedEntityToMunroFeedDetailsDto(completedMunro);
 
         List<MunroCompletedKudosDto> kudosEntries = new ArrayList<MunroCompletedKudosDto>();
-        completedMunro.getMunroCompletedKudosEntities().forEach((kudos) -> {
+        completedMunro.getMunroCompletedKudosEntities().forEach(kudos ->
             kudosEntries.add(
                     new MunroCompletedKudosDto(
                             kudos.getMunroCompleted().getId(),
                             kudos.getUser().getName(),
                             kudos.getUser().getId(),
-                            kudos.getDate()));
-        });
+                            kudos.getDate()))
+        );
 
         munroFeedDetails.setMunroCompletedKudosDtoList(kudosEntries);
 
@@ -254,70 +229,44 @@ public class MunroService {
     }
 
     public void giveKudos(Long munroCompletedId, Long currentUserId) {
-        logger.info("Attempting to give Kudos on munroCompleted entry " + munroCompletedId + " from user " + currentUserId);
+        logger.info("Attempting to give Kudos on munroCompleted entry {} from user {}.", munroCompletedId, currentUserId);
 
         var munroCompletedEntry = munroCompletedRepository.findById(munroCompletedId);
-        if(!munroCompletedEntry.isPresent()){
-            logger.info("Failed to find munroCompleted entry " + munroCompletedId);
+        if(munroCompletedEntry.isEmpty()){
+            logger.info("Failed to find munroCompleted entry {}.", munroCompletedId);
             throw new RuntimeException("Failed to find Munro Completed entry with id" + munroCompletedId);
         }
 
         var currentUser = userRepository.findById(currentUserId);
-        if(!currentUser.isPresent()){
-            logger.info("Failed to find user entry " + currentUserId);
+        if(currentUser.isEmpty()){
+            logger.info("Failed to find user entry {}.", currentUserId);
             throw new RuntimeException("Failed to find user entry with id" + currentUserId);
         }
 
         var kudoEntry = new MunroCompletedKudosEntity(munroCompletedEntry.get(), currentUser.get(), LocalDateTime.now());
         munroCompletedKudosRepository.save(kudoEntry);
 
-        logger.info("Successfully gave Kudos on munroCompleted entry " + munroCompletedId + " from user " + currentUserId);
+        logger.info("Successfully gave Kudos on munroCompleted entry {} from user {}.", munroCompletedId, currentUserId);
     }
 
     public void postComment(Long munroCompletedId, Long currentUserId, String comment){
-        logger.info("Attempting to post a comment from user " + currentUserId + " on munro completed entry" + munroCompletedId);
+        logger.info("Attempting to post a comment from user {} on munro completed entry {}.", munroCompletedId, currentUserId);
 
         var munroCompletedEntry = munroCompletedRepository.findById(munroCompletedId);
-        if(!munroCompletedEntry.isPresent()){
-            logger.info("Failed to find munroCompleted entry " + munroCompletedId);
+        if(munroCompletedEntry.isEmpty()){
+            logger.info("Failed to find munroCompleted entry {}.", munroCompletedId);
             throw new RuntimeException("Failed to find Munro Completed entry with id" + munroCompletedId);
         }
 
         var currentUser = userRepository.findById(currentUserId);
-        if(!currentUser.isPresent()){
-            logger.info("Failed to find user entry " + currentUserId);
+        if(currentUser.isEmpty()){
+            logger.info("Failed to find user entry {}.", currentUserId);
             throw new RuntimeException("Failed to find user entry with id" + currentUserId);
         }
 
         var commentEntity = new MunroCompletedCommentEntity(munroCompletedEntry.get(), currentUser.get(), LocalDateTime.now(), comment);
         munroCompletedCommentRepository.save(commentEntity);
 
-        logger.info("Successfully posted a comment from user " + currentUserId + " on munro completed entry " + munroCompletedId);
-    }
-
-    private List<MunroCompletedCommentDto> mapCompletedCommentEntityToDetailsDto(List<MunroCompletedCommentEntity> entity){
-        List<MunroCompletedCommentDto> commentCollection = new ArrayList<>();
-
-        entity.forEach((completedCommentEntity) -> {
-            commentCollection.add(
-                    new MunroCompletedCommentDto(completedCommentEntity.getUser().getId(), completedCommentEntity.getUser().getName(), completedCommentEntity.getComment(), LocalDateTime.now())
-            );
-        });
-
-        return commentCollection;
-    }
-    private List<MunroCompletedKudosDto> mapCompletedKudosEntityToDetailsDto(List<MunroCompletedKudosEntity> entity){
-        List<MunroCompletedKudosDto> kudosCollection = new ArrayList<>();
-
-        entity.forEach((munroEntry) -> {
-            kudosCollection.add(new MunroCompletedKudosDto(
-                    munroEntry.getMunroCompleted().getId(),
-                    munroEntry.getUser().getName(),
-                    munroEntry.getUser().getId(),
-                    LocalDateTime.now()
-            ));
-        });
-
-        return kudosCollection;
+        logger.info("Successfully posted a comment from user {} on munro completed entry {}", currentUserId, munroCompletedId);
     }
 }

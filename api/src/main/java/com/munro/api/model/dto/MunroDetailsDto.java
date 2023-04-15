@@ -1,14 +1,15 @@
 package com.munro.api.model.dto;
 
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 import java.util.List;
 
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
+@SuperBuilder(toBuilder = true)
 public class MunroDetailsDto {
     private String name;
     private int height;
@@ -21,18 +22,6 @@ public class MunroDetailsDto {
     private List<MunroCompletedKudosDto> munroCompletedKudosDtoList;
 
     private List<WeatherDtoTemp> munroWeather;
-
-    public MunroDetailsDto(String name, int height, double latitude, double longitude, String region, String meaningOfName, boolean completed, List<MunroCompletedCommentDto> munroCompletedCommentDtoList, List<MunroCompletedKudosDto> munroCompletedKudosDtoList) {
-        this.name = name;
-        this.height = height;
-        this.latitude = latitude;
-        this.longitude = longitude;
-        this.region = region;
-        this.meaningOfName = meaningOfName;
-        this.completed = completed;
-        this.munroCompletedCommentDtoList = munroCompletedCommentDtoList;
-        this.munroCompletedKudosDtoList = munroCompletedKudosDtoList;
-    }
 
     public MunroDetailsDto(String name, int height, double latitude, double longitude, String region, String meaningOfName, boolean completed) {
         this.name = name;

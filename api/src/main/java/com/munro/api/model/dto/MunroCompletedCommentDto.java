@@ -1,6 +1,6 @@
 package com.munro.api.model.dto;
 
-import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -8,10 +8,14 @@ import java.time.LocalDateTime;
 
 @Getter
 @Setter
-@AllArgsConstructor
-public class MunroCompletedCommentDto {
-    private Long userId;
+@EqualsAndHashCode(callSuper = true)
+public class MunroCompletedCommentDto extends CommentDetailsDto{
     private String userName;
-    private String comment;
     private LocalDateTime date;
+
+    public MunroCompletedCommentDto(Long userId, String userName, String comment, LocalDateTime date){
+        super(userId, comment);
+        setUserName(userName);
+        setDate(date);
+    }
 }

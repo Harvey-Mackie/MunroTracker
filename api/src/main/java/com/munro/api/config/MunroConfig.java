@@ -12,8 +12,6 @@ public class MunroConfig {
     CommandLineRunner commandLineRunner(
             MunroService munroService
     ){
-        return args -> {
-            munroService.FetchMunros();
-        };
+        return args -> munroService.fetchMunros();
     }
 }

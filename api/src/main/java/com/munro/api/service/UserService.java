@@ -1,6 +1,6 @@
 package com.munro.api.service;
 
-import com.munro.api.model.domain.UserFollowersEntity;
+import com.munro.api.model.entities.UserFollowersEntity;
 import com.munro.api.repository.UserFollowersRepository;
 import com.munro.api.repository.UserRepository;
 import org.slf4j.Logger;
@@ -22,7 +22,7 @@ public class UserService {
     }
 
     public void followUser(Long currentUserId, Long userToFollowId){
-        logger.info("User "+ currentUserId + " attempting to start following user " + userToFollowId);
+        logger.info("User {} attempting to start following user {}.", currentUserId, userToFollowId);
 
         var user = userRepository.findById(currentUserId).get();
         var userToFollow = userRepository.findById(userToFollowId).get();
@@ -30,11 +30,11 @@ public class UserService {
         var userFollower = new UserFollowersEntity(user, userToFollow);
         userFollowersRepository.save(userFollower);
 
-        logger.info("User "+ currentUserId + " is now following user " + userToFollowId);
+        logger.info("User {} is now following user {}.", currentUserId, userToFollowId);
     }
 
     public void unfollowUser(Long currentUserId, Long userToUnfollowId){
-        logger.info("User "+ currentUserId + " attempting to start unfollow user " + userToUnfollowId);
+        logger.info("User {} attempting to start unfollow user {}.", currentUserId, userToUnfollowId);
 
         var user = userRepository.findById(currentUserId).get();
         var userToUnfollow = userRepository.findById(userToUnfollowId).get();
@@ -45,6 +45,6 @@ public class UserService {
             userFollowersRepository.delete(target);
         });
 
-        logger.info("User "+ currentUserId + " is now unfollowing user " + userToUnfollowId);
+        logger.info("User {} is now unfollowing user {}.", currentUserId, userToUnfollowId);
     }
 }

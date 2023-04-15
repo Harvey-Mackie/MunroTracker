@@ -1,4 +1,4 @@
-package com.munro.api.model.domain;
+package com.munro.api.model.entities;
 
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @NoArgsConstructor
-public class MunroCompletedKudosEntity {
+public class MunroCompletedCommentEntity {
     @Id
     @SequenceGenerator(
             name = "munro_completed_sequence",
@@ -32,12 +32,14 @@ public class MunroCompletedKudosEntity {
     @ManyToOne
     @JoinColumn(name = "user_id", referencedColumnName = "id")
     private UserEntity user;
-    
-    private LocalDateTime date;
 
-    public MunroCompletedKudosEntity(MunroCompletedEntity munroCompleted, UserEntity user, LocalDateTime date) {
+    private LocalDateTime date;
+    private String comment;
+
+    public MunroCompletedCommentEntity(MunroCompletedEntity munroCompleted, UserEntity user, LocalDateTime date, String comment) {
         this.munroCompleted = munroCompleted;
         this.user = user;
         this.date = date;
+        this.comment = comment;
     }
 }

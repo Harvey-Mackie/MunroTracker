@@ -1,4 +1,4 @@
-package com.munro.api.model.domain;
+package com.munro.api.model.entities;
 
 import jakarta.persistence.*;
 import lombok.Getter;

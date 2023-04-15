@@ -1,6 +1,6 @@
 package com.munro.api.jobs;
 
-import com.munro.api.model.domain.MunroWeatherEntity;
+import com.munro.api.model.entities.MunroWeatherEntity;
 import com.munro.api.repository.MunroRepository;
 import com.munro.api.repository.MunroWeatherRepository;
 import com.munro.api.service.MunroService;
@@ -39,12 +39,12 @@ public class MunroWeatherInit {
         var munros = munroRepository.findAll();
 
         if(munros.isEmpty()){
-            munroService.FetchMunros();
+            munroService.fetchMunros();
             munros = munroRepository.findAll();
         }
 
-        munros.forEach((munro) -> {
-            logger.info("Attempting to fetch weather for " + munro.getName());
+        munros.forEach(munro -> {
+            logger.info("Attempting to fetch weather for {}", munro.getName());
 
             try {
                 var weatherDtoTemps = weatherService.getWeatherForNext5Days(munro.getName());
@@ -60,11 +60,11 @@ public class MunroWeatherInit {
                     ));
                 }
             } catch (Exception e) {
-                logger.info("Failed to fetch weather for " + munro.getName());
+                logger.info("Failed to fetch weather for {}", munro.getName());
             }
 
 
-            logger.info("Successfully fetched weather for " + munro.getName());
+            logger.info("Successfully fetched weather for {}", munro.getName());
         });
 
         logger.info("Successfully fetched weather");

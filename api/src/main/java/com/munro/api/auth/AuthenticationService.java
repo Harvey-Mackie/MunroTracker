@@ -2,7 +2,7 @@ package com.munro.api.auth;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.munro.api.config.JwtService;
-import com.munro.api.model.domain.UserEntity;
+import com.munro.api.model.entities.UserEntity;
 import com.munro.api.repository.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

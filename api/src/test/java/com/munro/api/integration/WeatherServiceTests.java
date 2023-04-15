@@ -19,7 +19,7 @@ import org.springframework.test.context.TestPropertySource;
 @TestPropertySource(
         locations = "classpath:application-integrationtest.properties"
 )
-public class weatherServiceTests {
+class WeatherServiceTests {
 
     @Autowired
     private MunroService munroService;
@@ -27,7 +27,7 @@ public class weatherServiceTests {
     private WeatherService weatherService;
 
     @Test
-    public void shouldReturnWeatherForMunro(){
+    void shouldReturnWeatherForMunro(){
         var munro = new MunroDetailsDto("Ben Nevis", 10, 10, 10, "Perth", "No meaning", false);
 
         try{

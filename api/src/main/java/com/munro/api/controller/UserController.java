@@ -1,25 +1,21 @@
 package com.munro.api.controller;
 
 
-import com.munro.api.model.domain.UserEntity;
+import com.munro.api.model.entities.UserEntity;
 import com.munro.api.model.dto.UserDetailsDto;
 import com.munro.api.repository.UserRepository;
 import com.munro.api.service.UserService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("api/v1/user")
 public class UserController {
 
     private final UserService userService;
     private final UserRepository userRepository;
-
-    @Autowired
-    public UserController(UserService userService, UserRepository userRepository) {
-        this.userService = userService;
-        this.userRepository = userRepository;
-    }
 
     @PostMapping()
     public boolean create(

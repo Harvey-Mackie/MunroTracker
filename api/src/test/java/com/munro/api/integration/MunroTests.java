@@ -1,8 +1,8 @@
 package com.munro.api.integration;
 
 import com.munro.api.ApiApplication;
-import com.munro.api.model.domain.MunroEntity;
-import com.munro.api.model.domain.UserEntity;
+import com.munro.api.model.entities.MunroEntity;
+import com.munro.api.model.entities.UserEntity;
 import com.munro.api.repository.MunroRepository;
 import com.munro.api.repository.UserRepository;
 import com.munro.api.service.MunroService;
@@ -59,7 +59,7 @@ class MunroTests {
 
     @Test
     void shouldCompleteMunro(){
-        munroService.SetMunroToComplete(user2.getId(), selectedMunro.getId(), LocalDate.now());
+        munroService.setMunroToComplete(user2.getId(), selectedMunro.getId(), LocalDate.now());
         var munroCollection = munroService.getMunros(user2.getId());
 
         var munro = munroCollection.stream().findFirst().get();
@@ -70,7 +70,7 @@ class MunroTests {
 
     @Test
     void shouldShowCompletedMunrosOnFollowersFeed(){
-        munroService.SetMunroToComplete(user2.getId(), selectedMunro.getId(), LocalDate.now());
+        munroService.setMunroToComplete(user2.getId(), selectedMunro.getId(), LocalDate.now());
 
         var feed = munroService.feed(user1.getId());
 
@@ -80,7 +80,7 @@ class MunroTests {
 
     @Test
     void shouldAllowUserToPostCommentOnCompletedMunro(){
-        var selectedMunroPostingId = munroService.SetMunroToComplete(user2.getId(), selectedMunro.getId(), LocalDate.now());
+        var selectedMunroPostingId = munroService.setMunroToComplete(user2.getId(), selectedMunro.getId(), LocalDate.now());
 
         munroService.postComment(selectedMunroPostingId, user1.getId(), "Test");
 
@@ -98,7 +98,7 @@ class MunroTests {
 
     @Test
     void shouldAllowUserToKudosACompletedMunro(){
-        var selectedMunroPostingId = munroService.SetMunroToComplete(user2.getId(), selectedMunro.getId(), LocalDate.now());
+        var selectedMunroPostingId = munroService.setMunroToComplete(user2.getId(), selectedMunro.getId(), LocalDate.now());
 
         munroService.giveKudos(selectedMunroPostingId, user1.getId());
         var munro = munroService.getMunroCompleted(selectedMunroPostingId);

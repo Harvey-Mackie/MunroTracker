@@ -1,4 +1,4 @@
-package com.munro.api.model.response;
+package com.munro.api.model.weather;
 
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;

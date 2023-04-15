@@ -1,8 +1,8 @@
 package com.munro.api.mapper;
 
 import com.munro.api.model.dto.WeatherDtoTemp;
-import com.munro.api.model.response.MetOfficeSiteRep;
-import com.munro.api.model.response.MetOfficeWeatherRep;
+import com.munro.api.model.weather.MetOfficeSiteRep;
+import com.munro.api.model.weather.MetOfficeWeatherRep;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -11,8 +11,9 @@ import java.util.List;
 import java.util.Optional;
 
 public class MapMetOfficeSiteRepToWeatherDto {
-
     private static Logger logger = LoggerFactory.getLogger(MapMetOfficeSiteRepToWeatherDto.class);
+
+    private MapMetOfficeSiteRepToWeatherDto(){}
 
     public static Optional<List<WeatherDtoTemp>> tryMap(MetOfficeSiteRep metOfficeSiteRep){
         try{
@@ -62,15 +63,15 @@ public class MapMetOfficeSiteRepToWeatherDto {
     }
 
     private static String getVisibilityFromCode(String code){
-        switch(code){
-            case "UN": return "Unknown";
-            case "VP": return "Very Poor";
-            case "PO": return "Poor";
-            case "MO": return "Moderate";
-            case "GO": return "Good";
-            case "VG": return "Very Good";
-            case "EX": return "Excellent";
-        }
-        return "";
+        return switch (code) {
+            case "UN" -> "Unknown";
+            case "VP" -> "Very Poor";
+            case "PO" -> "Poor";
+            case "MO" -> "Moderate";
+            case "GO" -> "Good";
+            case "VG" -> "Very Good";
+            case "EX" -> "Excellent";
+            default -> "";
+        };
     }
 }

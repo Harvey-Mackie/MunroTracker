@@ -1,11 +1,10 @@
 package com.munro.api.service.external;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.munro.api.exception.SiteNotFoundException;
 import com.munro.api.mapper.MapMetOfficeSiteRepToWeatherDto;
 import com.munro.api.model.dto.WeatherDtoTemp;
-import com.munro.api.model.response.MetOfficeSiteCollection;
-import com.munro.api.model.response.MetOfficeSiteRep;
+import com.munro.api.model.weather.MetOfficeSiteCollection;
+import com.munro.api.model.weather.MetOfficeSiteRep;
 import com.munro.api.properties.ConfigProperties;
 import lombok.SneakyThrows;
 import org.slf4j.Logger;
@@ -15,10 +14,8 @@ import org.springframework.stereotype.Service;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Unmarshaller;
-import java.io.IOException;
 import java.io.StringReader;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
@@ -30,8 +27,8 @@ import java.util.Map;
 @Service
 public class WeatherService {
 
-    private Logger logger = LoggerFactory.getLogger(WeatherService.class);
-    private HttpClient httpClient;
+    private final Logger logger = LoggerFactory.getLogger(WeatherService.class);
+    private final HttpClient httpClient;
     
     @Autowired
     protected final ConfigProperties configProperties;
@@ -46,7 +43,7 @@ public class WeatherService {
         Map<String, Integer> siteLocations = getWeatherSiteLocations();
 
         if(!siteLocations.containsKey(munroName)){
-            logger.info("Site does not exist with name " + munroName + ".");
+            logger.info("Site does not exist with name {}.", munroName);
             throw new SiteNotFoundException(munroName);
         }
 
@@ -74,11 +71,13 @@ public class WeatherService {
 
             logger.info("Successfully unmarshalled weather data.");
 
-            return weatherDto.get();
+            if(weatherDto.isPresent()){
+                return weatherDto.get();
+            }
 
         }
         catch (Exception exception){
-            logger.error("An error occured while getting the weather", exception);
+            logger.error("An error occurred while getting the weather", exception);
         }
 
         return new ArrayList<>();
@@ -97,17 +96,12 @@ public class WeatherService {
 
         HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
-        try{
-            JAXBContext jaxbContext = JAXBContext.newInstance(MetOfficeSiteCollection.class);
-            Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
-            StringReader reader = new StringReader(response.body());
-            MetOfficeSiteCollection siteLocations = (MetOfficeSiteCollection) unmarshaller.unmarshal(reader);
+        JAXBContext jaxbContext = JAXBContext.newInstance(MetOfficeSiteCollection.class);
+        Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
+        StringReader reader = new StringReader(response.body());
+        MetOfficeSiteCollection siteLocations = (MetOfficeSiteCollection) unmarshaller.unmarshal(reader);
 
-            siteLocations.getLocations().stream().forEach(l -> weatherSiteLocations.put(l.getName(), l.getId()));
-        }
-        catch(Exception ex){
-            System.out.println(ex.toString());
-        }
+        siteLocations.getLocations().stream().forEach(l -> weatherSiteLocations.put(l.getName(), l.getId()));
 
 
         return weatherSiteLocations;
